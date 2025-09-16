@@ -164,7 +164,7 @@ def _PN_E(q, p, e, Y):
     rhs_numer = kappa * rho + 2.0 * epsilon * sigma
     rhs_denom = rho * rho + 4.0 * eta * sigma
 
-    E_square = (rhs_numer - 2.0 * sqrt(rhs_sqrt)) / rhs_denom
+    E_square = (rhs_numer -np.sign(Y)* 2.0 * sqrt(rhs_sqrt)) / rhs_denom
     return sqrt(E_square)
 
 
