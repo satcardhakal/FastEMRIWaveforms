@@ -6,6 +6,43 @@
 # * * Helper functions to detect LAPACK * *
 # * * * * * * * * * * * * * * * * * * * * *
 
+# few_try_get_lapacke_with_flexiblas
+# -----------------------------------
+#
+# This method will try to locate LAPACKE using FlexiBLAS.
+#
+# This functions sets the following variables in the parent scope:
+#
+# * In case of success:
+#
+#   * LAPACKE_WITH_FLEXIBLAS_SUCCESS to ON
+#   * LAPACKE_WITH_FLEXIBLAS_LIBS to targets to link against lapack
+#
+# * In case of failure:
+#
+#   * LAPACKE_WITH_FLEXIBLAS_SUCCESS to OFF
+function(few_try_get_lapacke_with_flexiblas)
+
+  message(CHECK_START "Trying with FlexiBLAS")
+  find_package(PkgConfig)
+  if(NOT PkgConfig_FOUND)
+    message(CHECK_FAIL "PkgConfig not available")
+    set(LAPACKE_WITH_FLEXIBLAS_SUCCESS OFF PARENT_SCOPE)
+    return()
+  endif()
+
+  pkg_check_modules(flexiblas IMPORTED_TARGET flexiblas)
+  if(NOT flexiblas_FOUND)
+    message(CHECK_FAIL "FlexiBLAS not found")
+    set(LAPACKE_WITH_FLEXIBLAS_SUCCESS OFF PARENT_SCOPE)
+    return()
+  endif()
+
+  message(CHECK_PASS "success! Found FlexiBLAS ${flexiblas_VERSION} in ${flexiblas_LIBDIR}")
+  set(LAPACKE_WITH_FLEXIBLAS_SUCCESS ON PARENT_SCOPE)
+  set(LAPACKE_WITH_FLEXIBLAS_LIBS PkgConfig::flexiblas PARENT_SCOPE)
+endfunction()
+
 # few_try_get_lapacke_with_cmake
 # ------------------------------
 #
@@ -115,18 +152,21 @@ endfunction()
 #
 # This method will try to make LAPACKE available using the following strategies:
 #
+# * FLEXIBLAS: use the function "few_try_get_lapacke_with_flexiblas"
 # * PKGCONFIG: use the function "few_try_get_lapacke_with_pkgconfig"
 # * CMAKE: use the function "few_try_get_lapacke_with_cmake"
 # * FETCH: use the function "few_try_get_lapacke_with_cpm"
 #
 # The following rules are applied to select the attempted strategies:
 #
+# * The FLEXIBLAS strategy is only attempted if FEW_LAPACKE_DETECT_WITH is
+#   "AUTO" or "FLEXIBLAS"
 # * The PKGCONFIG strategy is only attempted if FEW_LAPACKE_DETECT_WITH is
 #   "AUTO" or "PKGCONFIG"
 # * The CMAKE strategy is only attempted if FEW_LAPACKE_DETECT_WITH is "AUTO" or
 #   "CMAKE".
 # * The FETCH strategy is only attempted if FEW_LAPACKE_FETCH is "AUTO" or "ON".
-# * The CMAKE and PKGCONFIG strategies are forcefully disabled if
+# * The CMAKE, PKGCONFIG, and FLEXIBLAS strategies are forcefully disabled if
 #   FEW_LAPACKE_FETCH is "ON"
 #
 # If no strategy is attempted, the function raises a warning and does not set
@@ -140,12 +180,18 @@ endfunction()
 #
 # * FEW_LAPACKE_LIBS: list of libraries to link against to use LAPACKE
 # * FEW_LAPACKE_GET_SUCCESS: ON
-# * FEW_LAPACKE_GET_STRATEGY: strategy that succeeded (PKGCONFIG|CMAKE|FETCH )
+# * FEW_LAPACKE_GET_STRATEGY: strategy that succeeded (FLEXIBLAS|PKGCONFIG|CMAKE|FETCH )
 function(few_get_lapacke)
   # cmake-lint: disable=R0912,R0915
   message(CHECK_START "Locating LAPACKE")
 
   # I. Detect enabled strategies
+  if(FEW_LAPACKE_DETECT_WITH STREQUAL "AUTO" OR FEW_LAPACKE_DETECT_WITH
+                                                STREQUAL "FLEXIBLAS")
+    set(flexiblas_strategy_enabled ON)
+  else()
+    set(flexiblas_strategy_enabled OFF)
+  endif()
   if(FEW_LAPACKE_DETECT_WITH STREQUAL "AUTO" OR FEW_LAPACKE_DETECT_WITH
                                                 STREQUAL "PKGCONFIG")
     set(pkgconfig_strategy_enabled ON)
@@ -164,18 +210,31 @@ function(few_get_lapacke)
     set(fetch_strategy_enabled OFF)
   endif()
   if(FEW_LAPACKE_FETCH STREQUAL "ON")
+    set(flexiblas_strategy_enabled OFF)
     set(pkgconfig_strategy_enabled OFF)
     set(cmake_strategy_enabled OFF)
   endif()
 
-  if(pkgconfig_strategy_enabled OR cmake_strategy_enabled
+  if(flexiblas_strategy_enabled OR pkgconfig_strategy_enabled OR cmake_strategy_enabled
      OR fetch_strategy_enabled)
     set(any_strategy_enabled ON)
   else()
     set(any_strategy_enabled OFF)
   endif()
 
-  # II. Apply the PkgConfig strategy if enabled
+  # II. Apply the FlexiBLAS strategy if enabled
+  if(flexiblas_strategy_enabled)
+    few_try_get_lapacke_with_flexiblas()
+    if(LAPACKE_WITH_FLEXIBLAS_SUCCESS)
+      set(FEW_LAPACKE_LIBS "${LAPACKE_WITH_FLEXIBLAS_LIBS}" PARENT_SCOPE)
+      set(FEW_LAPACKE_GET_SUCCESS ON PARENT_SCOPE)
+      set(FEW_LAPACKE_GET_STRATEGY "FLEXIBLAS" PARENT_SCOPE)
+      message(CHECK_PASS "found with FlexiBLAS")
+      return()
+    endif()
+  endif()
+
+  # III. Apply the PkgConfig strategy if enabled
   if(pkgconfig_strategy_enabled)
     few_try_get_lapacke_with_pkgconfig()
     if(LAPACKE_WITH_PKGCONFIG_SUCCESS)
@@ -187,7 +246,7 @@ function(few_get_lapacke)
     endif()
   endif()
 
-  # III. Apply the CMake strategy if enabled
+  # IV. Apply the CMake strategy if enabled
   if(cmake_strategy_enabled)
     few_try_get_lapacke_with_cmake()
     if(LAPACKE_WITH_CMAKE_SUCCESS)
@@ -199,7 +258,7 @@ function(few_get_lapacke)
     endif()
   endif()
 
-  # IV. Apply the Fetch strategy if enabled
+  # V. Apply the Fetch strategy if enabled
   if(fetch_strategy_enabled)
     few_try_get_lapacke_with_cpm()
     if(LAPACKE_WITH_CPM_SUCCESS)
@@ -211,9 +270,20 @@ function(few_get_lapacke)
     endif()
   endif()
 
-  # V. Fail if any strategy was applied
+  # VI. Fail if any strategy was applied
   if(any_strategy_enabled)
     message(CHECK_FAIL "not found")
+    if(flexiblas_strategy_enabled)
+      message(WARNING "LAPACKE could not be located with FlexiBLAS.")
+      message(
+        WARNING "Make sure that FlexiBLAS is installed in your environment.\n"
+                "On Ubuntu, it can be installed with:\n"
+                "  $ sudo apt install libflexiblas-dev\n"
+                "On macOS, it can be installed with Homebrew with:\n"
+                "  $ brew install flexiblas\n"
+                "In conda environment, it can be installed with:\n"
+                "  $ conda install flexiblas")
+    endif()
     if(pkgconfig_strategy_enabled)
       message(WARNING "LAPACKE could not be located with PKGCONFIG.")
       if(LAPACKE_WITH_PKGCONFIG_REASON STREQUAL "MISSING_PKGCONFIG")
@@ -259,7 +329,7 @@ function(few_get_lapacke)
         THEY SHOULD HELP YOU TO FIX THE ISSUE.")
   endif()
 
-  # VI. Add message if lapacke detection is ignored
+  # VII. Add message if lapacke detection is ignored
   message(CHECK_PASS "ignored \
    (FEW_LAPACKE_DETECT_WITH=${FEW_LAPACKE_DETECT_WITH} \
    and FEW_LAPACKE_FETCH=${FEW_LAPACKE_FETCH})")

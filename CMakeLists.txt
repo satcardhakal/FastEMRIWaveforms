@@ -50,7 +50,8 @@ set_property(GLOBAL APPEND PROPERTY FEW_OPTION_NAMES FEW_MARCH)
 # FEW_LAPACKE_DETECT_WITH sets the tool used to try to detect LAPACKE locally.
 # Possible values are:
 #
-# * AUTO: attempts PKGCONFIG and, in case of failure, CMAKE
+# * AUTO: attempts FLEXIBLAS, PKGCONFIG and, in case of failure, CMAKE
+# * FLEXIBLAS: use FlexiBLAS library which provides a flexible BLAS/LAPACK interface
 # * CMAKE: use CMake find_package() mechanism (try to find
 #   'lapacke-config.cmake' in CMAKE_PREFIX_PATH or in standard system locations)
 # * PKGCONFIG: use pkgconfig (which must be installed), try to find 'lapacke.pc'
@@ -58,7 +59,7 @@ set_property(GLOBAL APPEND PROPERTY FEW_OPTION_NAMES FEW_MARCH)
 # * DISABLE (or any other value): disable detection of local lapacke
 #   installation
 set(FEW_LAPACKE_DETECT_WITH "AUTO" CACHE STRING "Tool used to locate LAPACKE.")
-set_property(CACHE FEW_LAPACKE_DETECT_WITH PROPERTY STRINGS "AUTO" "CMAKE"
+set_property(CACHE FEW_LAPACKE_DETECT_WITH PROPERTY STRINGS "AUTO" "FLEXIBLAS" "CMAKE"
                                                     "PKGCONFIG" "DISABLE")
 set_property(GLOBAL APPEND PROPERTY FEW_OPTION_NAMES FEW_LAPACKE_DETECT_WITH)
 

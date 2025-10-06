@@ -9,44 +9,48 @@ publication of a conda package on `conda-forge`.
 If you read this page at a significantly latter date, note that these instructions might be outdated.
 :::
 
-
 ## How to use this installation guide
 
 To quickly find the right installation instructions for your needs, follow these steps:
 
 1. **Identify your user type:**
-  - If you want to modify the source code, follow the **from source** installation instructions.
-  - If you just want to use the package, follow the **pip** or **conda** installation instructions.
+
+- If you want to modify the source code, follow the **from source** installation instructions.
+- If you just want to use the package, follow the **pip** or **conda** installation instructions.
 
 2. **Select your platform:**
-  - **Linux** (including Ubuntu and most clusters)
-  - **Mac OS**
-  - **Windows**
-  - **HPC/Cluster** (e.g., CNES, CC-IN2P3)
+
+- **Linux** (including Ubuntu and most clusters)
+- **Mac OS**
+- **Windows**
+- **HPC/Cluster** (e.g., CNES, CC-IN2P3)
 
 3. **Decide if you need GPU support:**
-  - Look for instructions mentioning CUDA or GPU backends if you require GPU
-    acceleration.
-  - Otherwise, follow the standard CPU installation steps.
+
+- Look for instructions mentioning CUDA or GPU backends if you require GPU
+  acceleration.
+- Otherwise, follow the standard CPU installation steps.
 
 4. **Choose your environment manager:**
-  - Use the **conda** instructions if you prefer conda/mamba/micromamba.
-  - Use the **pip** instructions if you prefer pip/venv.
+
+- Use the **conda** instructions if you prefer conda/mamba/micromamba.
+- Use the **pip** instructions if you prefer pip/venv.
 
 5. **Jupyter Hub integration:**
-  - If you need to use FEW in Jupyter Hub on a cluster, refer to the dedicated Jupyter Hub section in the relevant cluster instructions.
+
+- If you need to use FEW in Jupyter Hub on a cluster, refer to the dedicated Jupyter Hub section in the relevant cluster instructions.
 
 ---
 
 **Quick navigation table:**
 
-| User Type / Platform      | Linux / Cluster | Mac OS | Windows | CNES Cluster | CC-IN2P3 Cluster |
-|--------------------------|-----------------|--------|---------|--------------|------------------|
-| **Install via pip (user)**      | [Generic pip](#using-pip) | [Generic pip](#using-pip) | Not available | [Generic pip](#using-pip) | [CC-IN2P3 pip](#on-the-cc-in2p3-cluster-with-gpu-support) |
-| **Install via conda (user)**    | [Generic conda](#using-conda) | [Generic conda](#using-conda) | [Windows conda](#on-windows) | [Generic conda](#using-conda) | [CC-IN2P3 conda](#on-the-cc-in2p3-cluster-with-gpu-support) |
-| **From source (developer)**          | [Generic source](#from-source) | [Mac source](#on-mac-os-from-sources) | [Windows source](#on-windows) | [CNES source](#on-cnes-cluster-with-gpu-and-jupyter-hub-supports) | [CC-IN2P3 source](#on-the-cc-in2p3-cluster-with-gpu-support) |
-| **GPU support**          | [See Generic](#generic-installation-instructions) | Not available | Not available | [CNES GPU](#on-cnes-cluster-with-gpu-and-jupyter-hub-supports) | [CC-IN2P3 GPU](#on-the-cc-in2p3-cluster-with-gpu-support) |
-| **Jupyter Hub**          | N/A | N/A | N/A | [CNES Jupyter](#make-the-conda-environment-available-as-a-jupyter-hub-kernel) | [CC-IN2P3 Jupyter](#enable-the-jupyter-hub-kernel) |
+| User Type / Platform         | Linux / Cluster                                   | Mac OS                                | Windows                       | CNES Cluster                                                                  | CC-IN2P3 Cluster                                             |
+| ---------------------------- | ------------------------------------------------- | ------------------------------------- | ----------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| **Install via pip (user)**   | [Generic pip](#using-pip)                         | [Generic pip](#using-pip)             | Not available                 | [Generic pip](#using-pip)                                                     | [CC-IN2P3 pip](#on-the-cc-in2p3-cluster-with-gpu-support)    |
+| **Install via conda (user)** | [Generic conda](#using-conda)                     | [Generic conda](#using-conda)         | [Windows conda](#on-windows)  | [Generic conda](#using-conda)                                                 | [CC-IN2P3 conda](#on-the-cc-in2p3-cluster-with-gpu-support)  |
+| **From source (developer)**  | [Generic source](#from-source)                    | [Mac source](#on-mac-os-from-sources) | [Windows source](#on-windows) | [CNES source](#on-cnes-cluster-with-gpu-and-jupyter-hub-supports)             | [CC-IN2P3 source](#on-the-cc-in2p3-cluster-with-gpu-support) |
+| **GPU support**              | [See Generic](#generic-installation-instructions) | Not available                         | Not available                 | [CNES GPU](#on-cnes-cluster-with-gpu-and-jupyter-hub-supports)                | [CC-IN2P3 GPU](#on-the-cc-in2p3-cluster-with-gpu-support)    |
+| **Jupyter Hub**              | N/A                                               | N/A                                   | N/A                           | [CNES Jupyter](#make-the-conda-environment-available-as-a-jupyter-hub-kernel) | [CC-IN2P3 Jupyter](#enable-the-jupyter-hub-kernel)           |
 
 :::{tip}
 Use the navigation table above to jump to the section that matches your needs.
@@ -112,49 +116,55 @@ There is no CUDA 11.x support for conda-based installations.
 To install FEW from source in any environment, follow these steps:
 
 1. **Clone the repository:**
-  ```sh
-  git clone https://github.com/BlackHolePerturbationToolkit/FastEMRIWaveforms.git
-  cd FastEMRIWaveforms
-  ```
+
+```sh
+git clone https://github.com/BlackHolePerturbationToolkit/FastEMRIWaveforms.git
+cd FastEMRIWaveforms
+```
 
 2. **(Optional) Checkout a specific release:**
-  ```sh
-  git checkout v{{ few_short_version }}
-  ```
+
+```sh
+git checkout v{{ few_short_version }}
+```
 
 3. **Create and activate a specific environment:**
-  - If you use `conda`, create a new environment named `few_env` with the required
-    compilers and libraries:
-    ```sh
-    conda create -n few_env python=3.12 cxx-compiler pkgconfig conda-forge/label/lapack_rc::liblapacke
-    conda activate few_env
-    ```
-  - If you prefer `virtualenv`, create a virtual environment, your environment will
-    need a C++ compiler, and either a Fortran compiler or `liblapacke` library:
-    ```sh
-    python3 -m venv few_env
-    source few_env/bin/activate
-    ```
+
+- If you use `conda`, create a new environment named `few_env` with the required
+  compilers and libraries:
+  ```sh
+  conda create -n few_env python=3.12 cxx-compiler pkgconfig conda-forge/label/lapack_rc::liblapacke
+  conda activate few_env
+  ```
+- If you prefer `virtualenv`, create a virtual environment, your environment will
+  need a C++ compiler, and either a Fortran compiler or `liblapacke` library:
+  ```sh
+  python3 -m venv few_env
+  source few_env/bin/activate
+  ```
 
 4. **Install FEW in editable mode:**
+
+```sh
+pip install -e '.[testing]'
+```
+
+- To enable GPU support (if available), add the CMake option and install manually
+  the required GPU dependencies:
+
   ```sh
-  pip install -e '.[testing]'
+  pip install -e '.[testing]' --config-settings=cmake.define.FEW_WITH_GPU=ON
+  pip install cupy-cuda12x 'nvidia-cuda-runtime-cu12==12.4.*' # Replace 12.4 by the CUDA driver version returned by nvidia-smi, keep the '.*' at the end
   ```
 
-  - To enable GPU support (if available), add the CMake option and install manually
-    the required GPU dependencies:
-    ```sh
-    pip install -e '.[testing]' --config-settings=cmake.define.FEW_WITH_GPU=ON
-    pip install cupy-cuda12x 'nvidia-cuda-runtime-cu12==12.4.*' # Replace 12.4 by the CUDA driver version returned by nvidia-smi, keep the '.*' at the end
-    ```
-
-  - Many options can be passed to the `pip install` command, see [below](#advanced-installation-options)
-    for more details.
+- Many options can be passed to the `pip install` command, see [below](#advanced-installation-options)
+  for more details.
 
 5. **(Optional) For advanced debugging, in case of compilation errors, add:**
-  ```sh
-  pip install -e . -v -Cbuild.verbose=true -Clogging.level=INFO
-  ```
+
+```sh
+pip install -e . -v -Cbuild.verbose=true -Clogging.level=INFO
+```
 
 This will build and install FEW from source, allowing you to modify the code and
 have changes reflected immediately in your environment.
@@ -260,7 +270,6 @@ micromamba create -n few_env python=3.12 cxx-compiler pkgconfig conda-forge/labe
 Then activate this environment and proceed with the installation of FEW
 as described [above](#from-source).
 
-
 ## On Windows
 
 ```{attention}
@@ -270,7 +279,7 @@ The PyPI package is not available for Windows users.
 
 To install FEW from sources, ensure you have a recent
 [Microsoft Visual Studio](https://visualstudio.microsoft.com/fr/downloads/)
-release installed locally. Tests were performed with *Visual Studio 2022 Community Edition*.
+release installed locally. Tests were performed with _Visual Studio 2022 Community Edition_.
 Install the required dependencies in a new conda environment:
 
 ```sh
@@ -279,7 +288,6 @@ $ conda create -n few_env -c conda-forge --override-channels \
 ```
 
 Then proceed with the installation of FEW as described [above](#from-source).
-
 
 You may also directly install the package from conda with:
 
@@ -293,13 +301,11 @@ If you manage to compile the GPU backend using from-source install, please let
 us know so we can update this documentation.
 :::
 
-
 ## On CNES cluster, with GPU and jupyter hub supports
 
 To install FEW on the CNES cluster, you need to use a GPU node in an interactive
 session. Following instructions assume you have access to the `lisa` project but
 can be easily adapted to any other project you have access to.
-
 
 First, log into the TREX cluster and request an interactive session on a GPU node:
 
@@ -318,7 +324,8 @@ $ conda activate few_env
 ```
 
 Load the `nvhpc` modules access the CUDA compiler, as well as the `cuda` module:
- ```sh
+
+```sh
 (few_env) $ module load cuda/12.4.1
 (few_env) $ module load nvhpc/22.9
 ```
@@ -348,6 +355,7 @@ EOC
 ```
 
 ### Make the conda environment available as a Jupyter Hub kernel
+
 After ensuring that `few` is working as expected, enable support for [Jupyter Hub](https://jupyterhub.cnes.fr/).
 First install `ipykernel` and declare a new kernel named `few_env`:
 
@@ -492,10 +500,11 @@ Many options are available to change the installation behaviour. These can be se
   - `ON`: ignore pre-installed `LAPACK(E)` and always fetch and compile their sources
   - `OFF`: disable `LAPACK(E)` fetching and only use pre-installed library and headers (install will fail if pre-installed lib and headers are not available)
   - `AUTO` (default): try to detect pre-installed `LAPACK(E)` and their headers. If found, use them, otherwise fetch `LAPACK(E)`.
-- `FEW_LAPACKE_DETECT_WITH=[CMAKE]|PKGCONFIG`: How `LAPACK(E)` should be detected
+- `FEW_LAPACKE_DETECT_WITH=[CMAKE]|PKGCONFIG|FLEXIBLAS`: How `LAPACK(E)` should be detected
   - `CMAKE`: `LAPACK(E)` will be detected using the cmake `FindPackage` command. If your `LAPACK(E)` install provides `lapacke-config.cmake` in a non-standard location, add its path to the `CMAKE_PREFIX_PATH` environment variable.
   - `PKGCONFIG`: `LAPACK(E)` will be detected using `pkg-config` by searching for the files `lapack.pc` and `lapacke.pc` . If these files are provided by your `LAPACK(E)` install in a non-standard location, add their path to the environment variable `PKG_CONFIG_PATH`
-  - `AUTO` (default): attempt both CMake and PkgConfig approaches
+  - `FLEXIBLAS`: `LAPACK(E)` will be detected using FlexiBLAS, which provides a flexible runtime switching mechanism for BLAS/LAPACK implementations. Requires FlexiBLAS to be installed and available via pkg-config.
+  - `AUTO` (default): attempt FlexiBLAS, PkgConfig, and CMake approaches in that order
 - `FEW_WITH_GPU=ON|OFF|[AUTO]`: Whether GPU-support must be enabled
   - `ON`: Forcefully enable GPU support (install will fail if GPU prerequisites are not met)
   - `OFF`: Disable GPU support
@@ -512,7 +521,7 @@ pip install . \
 ```
 
 If you enabled `GPU` support (or it was automatically enabled by the `AUTO` mode), you will also need to install the `nvidia-cuda-runtime`
-package corresponding to the CUDA version detected by `nvidia-smi` as explained in the *Getting Started* section above.
+package corresponding to the CUDA version detected by `nvidia-smi` as explained in the _Getting Started_ section above.
 You will also need to manually install `cupy-cuda11x` or `cupy-cuda12x` according to your CUDA version.
 
 ### conda vs pip installation
